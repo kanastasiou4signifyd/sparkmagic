@@ -1,13 +1,5 @@
 version: "3"
 services:
-  spark:
-    image: jupyter/sparkmagic-livy
-    build:
-      context: .
-      dockerfile: Dockerfile.spark
-    hostname: spark
-    ports:
-      - "8998:8998"
   jupyter:
     image: jupyter/sparkmagic
     build:
@@ -15,7 +7,7 @@ services:
       dockerfile: Dockerfile.jupyter
       args:
         dev_mode: "false"
-    links:
-      - spark
     ports:
       - "8888:8888"
+    extra_hosts:
+      - "spark:10.5.5.170"
