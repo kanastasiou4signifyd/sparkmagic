@@ -50,8 +50,10 @@
   "ignore_ssl_errors": false,
 
   "session_configs": {
-    "driverMemory": "1000M",
-    "executorCores": 2
+    "driverMemory": "16G",
+    "conf": {
+      "spark.jars": "s3://com.signifyd.model.hive/lib/test/modeletl-livy-CI-SNAPSHOT.jar"
+    }
   },
 
   "use_auto_viz": true,
