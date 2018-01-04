@@ -6,8 +6,19 @@ services:
       context: .
       dockerfile: Dockerfile.jupyter
       args:
-        dev_mode: "false"
+        dev_mode: "true"
     ports:
       - "8888:8888"
+    volumes:
+      - vtmp:/home/jovyan/work/tmp
     extra_hosts:
       - "spark:10.5.5.170"
+    environment:
+      - GRANT_SUDO=yes
+
+volumes:
+  vtmp:
+    driver_opts:
+      type: none
+      device: $PWD/tmp
+      o: bind

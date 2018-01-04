@@ -5,6 +5,8 @@ Provides the %spark magic."""
 # Distributed under the terms of the Modified BSD License.
 
 from __future__ import print_function
+import os
+import logging
 import json
 from IPython.core.magic import magics_class
 from IPython.core.magic import needs_local_scope, cell_magic, line_magic
@@ -48,7 +50,7 @@ class KernelMagics(SparkMagicBase):
     def __init__(self, shell, data=None, spark_events=None):
         # You must call the parent constructor
         super(KernelMagics, self).__init__(shell, data)
-        
+
         self.session_name = u"session_name"
         self.session_started = False
 
@@ -243,7 +245,7 @@ class KernelMagics(SparkMagicBase):
     def sql(self, line, cell="", local_ns=None):
         if self._do_not_call_start_session(""):
             args = parse_argstring_or_throw(self.sql, line)
-            
+
             coerce = get_coerce_value(args.coerce)
 
             return self.execute_sqlquery(cell, args.samplemethod, args.maxrows, args.samplefraction,
@@ -323,6 +325,18 @@ class KernelMagics(SparkMagicBase):
                 self.logger.error(u"Error creating session: {}".format(e))
                 self.ipython_display.send_error(self.fatal_error_message)
                 return False
+
+            ## ^^ signifyd_initialization
+            session_init_file = os.environ.get("SESSION_INIT_FILE")
+            if session_init_file:
+                session_init_file = os.path.expanduser(session_init_file)
+                if os.path.exists(session_init_file):
+                    with open(session_init_file) as filep:
+                        logging.info("Initialize session with %s.", session_init_file)
+                        code = filep.read()
+                        (success, out) = self.spark_controller.run_command(Command(code), self.session_name)
+                        logging.warn("return %s => %s", success, out)
+            ## $$
 
         return self.session_started
 
