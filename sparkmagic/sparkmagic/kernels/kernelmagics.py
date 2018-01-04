@@ -6,7 +6,6 @@ Provides the %spark magic."""
 
 from __future__ import print_function
 import os
-import logging
 import json
 from IPython.core.magic import magics_class
 from IPython.core.magic import needs_local_scope, cell_magic, line_magic
@@ -332,10 +331,11 @@ class KernelMagics(SparkMagicBase):
                 session_init_file = os.path.expanduser(session_init_file)
                 if os.path.exists(session_init_file):
                     with open(session_init_file) as filep:
-                        logging.info("Initialize session with %s.", session_init_file)
+                        self.logger.info("Initialize session with %s. session_name=%s, endpoint=%s" %(
+                                         session_init_file, self.session_name, self.endpoint))
                         code = filep.read()
                         (success, out) = self.spark_controller.run_command(Command(code), self.session_name)
-                        logging.warn("return %s => %s", success, out)
+                        self.logger.info("return %s => %s" % (success, out))
             ## $$
 
         return self.session_started

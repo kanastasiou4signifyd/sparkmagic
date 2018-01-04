@@ -13,6 +13,8 @@ RUN pip install --upgrade pip
 RUN pip install --upgrade --ignore-installed setuptools
 
 COPY examples /home/jovyan/work
+# override it with volume mapping if you want different session initialization.
+COPY examples/session_init.scala /home/jovyan/.livy_spark_session_init
 
 # Install sparkmagic - if DEV_MODE is set, use the one in the host directory.
 # Otherwise, just install from pip.

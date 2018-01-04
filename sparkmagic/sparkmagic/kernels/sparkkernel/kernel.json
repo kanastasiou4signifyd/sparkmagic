@@ -1,4 +1,4 @@
 {"argv":["python","-m","sparkmagic.kernels.sparkkernel.sparkkernel", "-f", "{connection_file}"],
  "display_name":"Spark",
- "env": {"SESSION_INIT_FILE": "~/work/session.init"}
+ "env": {"SESSION_INIT_FILE": "~/.livy_spark_session_init"}
 }
