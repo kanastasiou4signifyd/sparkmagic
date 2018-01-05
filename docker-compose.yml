@@ -12,4 +12,4 @@ services:
     extra_hosts:
       - "spark:10.5.5.170"
     volumes:
-      - ${HOME}/work/jupyter/work:/home/jovyan/work
+      - ${HOME}/Code/signifyd/jupyter_notebooks:/home/jovyan/work
