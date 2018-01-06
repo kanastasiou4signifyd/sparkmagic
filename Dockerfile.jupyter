@@ -27,7 +27,8 @@ RUN if [ "$dev_mode" = "true" ]; then \
       cd sparkmagic && pip install . && cd ../ ; \
     else pip install sparkmagic ; fi
 
-RUN pip install ipymd
+RUN pip install ipymd folium
+RUN pip install ipyparallel
 
 RUN mkdir /home/$NB_USER/.sparkmagic
 RUN jupyter nbextension enable --py --sys-prefix widgetsnbextension
@@ -44,6 +45,7 @@ RUN echo "c.NotebookApp.password = u''" >> ~/.jupyter/jupyter_notebook_config.py
 COPY start.sh /home/$NB_USER/start.sh
 
 USER root
+RUN ipcluster nbextension enable
 RUN chown $NB_USER /home/$NB_USER/.sparkmagic/config.json
 RUN rm -rf hdijupyterutils/ autovizwidget/ sparkmagic/
 CMD /home/$NB_USER/start.sh
