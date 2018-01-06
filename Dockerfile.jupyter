@@ -38,18 +38,14 @@ RUN jupyter-kernelspec install --user $(pip show sparkmagic | grep Location | cu
 RUN jupyter serverextension enable --py sparkmagic
 
 COPY sparkmagic/example_config.json /home/$NB_USER/.sparkmagic/config.json
-RUN sed -i 's/localhost/spark/g' /home/$NB_USER/.sparkmagic/config.json
 
 RUN echo "c.NotebookApp.token = u''" >> ~/.jupyter/jupyter_notebook_config.py
 RUN echo "c.NotebookApp.password = u''" >> ~/.jupyter/jupyter_notebook_config.py
+COPY start.sh /home/$NB_USER/start.sh
 
 USER root
 RUN chown $NB_USER /home/$NB_USER/.sparkmagic/config.json
 RUN rm -rf hdijupyterutils/ autovizwidget/ sparkmagic/
-
-CMD ["start-notebook.sh", "--NotebookApp.iopub_data_rate_limit=1000000000", \
-        "--NotebookApp.open_browser=False", \
-	"--NotebookApp.contents_manager_class='ipymd.IPymdContentsManager'", \
-	"--NotebookApp.log_level='DEBUG'" ]
+CMD /home/$NB_USER/start.sh
 
 USER $NB_USER

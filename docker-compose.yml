@@ -9,7 +9,7 @@ services:
         dev_mode: "true"
     ports:
       - "8888:8888"
-    extra_hosts:
-      - "spark:10.5.5.170"
+    env_file:
+      - ./spark.env
     volumes:
       - ${HOME}/Code/signifyd/jupyter_notebooks:/home/jovyan/work
