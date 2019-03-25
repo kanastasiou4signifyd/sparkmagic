@@ -11,7 +11,7 @@ from .exceptions import DataFrameParseException, BadUserDataException
 class SQLQuery(ObjectWithGuid):
     def __init__(self, query, samplemethod=None, maxrows=None, samplefraction=None, spark_events=None, coerce=None):
         super(SQLQuery, self).__init__()
-        
+
         if samplemethod is None:
             samplemethod = conf.default_samplemethod()
         if maxrows is None:
@@ -35,11 +35,17 @@ class SQLQuery(ObjectWithGuid):
         self._spark_events = spark_events
         self._coerce = coerce
 
-    def to_command(self, kind, sql_context_variable_name):
+    def to_command(self, lang, kind, sql_context_variable_name):
         if kind == constants.SESSION_KIND_PYSPARK:
-            return self._pyspark_command(sql_context_variable_name)
-        elif kind == constants.SESSION_KIND_PYSPARK3:
-            return self._pyspark_command(sql_context_variable_name, False)
+            if lang == constants.LANG_PYTHON:
+                return self._pyspark_command(sql_context_variable_name)
+            elif lang == constants.LANG_PYTHON3:
+                return self._pyspark_command(sql_context_variable_name, False)
+            else:
+                raise BadUserDataException(u"Kind '{}' with lang '{}' is not supported.".format(kind, lang))
+        # unreachable since livy 0.4+ the session is alwats pyspark regardless the version of python
+        # elif kind == constants.SESSION_KIND_PYSPARK3:
+        #     return self._pyspark_command(sql_context_variable_name, False)
         elif kind == constants.SESSION_KIND_SPARK:
             return self._scala_command(sql_context_variable_name)
         elif kind == constants.SESSION_KIND_SPARKR:
@@ -52,7 +58,7 @@ class SQLQuery(ObjectWithGuid):
                                                           self.samplemethod, self.maxrows, self.samplefraction)
         command_guid = ''
         try:
-            command = self.to_command(session.kind, session.sql_context_variable_name)
+            command = self.to_command(session.lang, session.kind, session.sql_context_variable_name)
             command_guid = command.guid
             (success, records_text) = command.execute(session)
             if not success:
@@ -67,7 +73,6 @@ class SQLQuery(ObjectWithGuid):
             self._spark_events.emit_sql_execution_end_event(session.guid, session.kind, session.id, self.guid,
                                                             command_guid, True, "", "")
             return result
-
 
     def _pyspark_command(self, sql_context_variable_name, encode_result=True):
         command = u'{}.sql(u"""{} """).toJSON()'.format(sql_context_variable_name, self.query)
@@ -110,16 +115,17 @@ class SQLQuery(ObjectWithGuid):
         else:
             command = u'collect({})'.format(command)
         command = u'jsonlite:::toJSON({})'.format(command)
-        command = u'for ({} in ({})) {{cat({})}}'.format(constants.LONG_RANDOM_VARIABLE_NAME, command, constants.LONG_RANDOM_VARIABLE_NAME)
+        command = u'for ({} in ({})) {{cat({})}}'.format(constants.LONG_RANDOM_VARIABLE_NAME, command,
+                                                         constants.LONG_RANDOM_VARIABLE_NAME)
         return Command(command)
 
     # Used only for unit testing
     def __eq__(self, other):
         return self.query == other.query and \
-            self.samplemethod == other.samplemethod and \
-            self.maxrows == other.maxrows and \
-            self.samplefraction == other.samplefraction and \
-            self._coerce == other._coerce
+               self.samplemethod == other.samplemethod and \
+               self.maxrows == other.maxrows and \
+               self.samplefraction == other.samplefraction and \
+               self._coerce == other._coerce
 
     def __ne__(self, other):
         return not (self == other)
